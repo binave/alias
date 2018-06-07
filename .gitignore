@@ -1,0 +1,17 @@
+# Ignore all
+*
+
+# Avoid ignoring directory
+!*/
+
+# Avoid ignoring some suffix
+!*.c
+!*.h
+
+# Avoid ignoring default file
+!.gitignore
+!README.md
+!LICENSE
+
+# Ignore some directory
+.*/
