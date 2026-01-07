@@ -5,13 +5,21 @@
 !*/
 
 # Avoid ignoring some suffix
-!*.c
-!*.h
+!*.cs
+!*.csproj
+!*.ico
+!*.sln
+!.alias.example
 
 # Avoid ignoring default file
+!.editorconfig
+!.gitattributes
 !.gitignore
-!README.md
 !LICENSE
+!README.md
+!build.cmd
 
 # Ignore some directory
 .*/
+bin/
+obj/

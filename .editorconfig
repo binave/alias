@@ -1,0 +1,44 @@
+root = true
+
+# C# files
+[*.cs]
+
+# https://learn.microsoft.com/zh-cn/dotnet/fundamentals/code-analysis/code-style-rule-options
+
+dotnet_diagnostic.IDE0130.severity = warning
+# dotnet_diagnostic.IDE0290.severity = error
+
+#### Core EditorConfig Options ####
+
+# Expression-level preferences
+dotnet_style_namespace_match_folder = true
+
+
+#### .NET Coding Conventions ####
+
+# New line preferences
+dotnet_style_allow_multiple_blank_lines_experimental = true
+dotnet_style_allow_statement_immediately_after_block_experimental = true
+
+#### C# Coding Conventions ####
+
+# Code-block preferences
+csharp_style_namespace_declarations = file_scoped
+
+# New line preferences
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = false
+csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = false
+csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental = false
+csharp_style_allow_blank_lines_between_consecutive_braces_experimental = false
+csharp_style_allow_embedded_statements_on_same_line_experimental = false
+
+#### C# Formatting Rules ####
+
+# New line preferences
+csharp_new_line_before_catch = false
+csharp_new_line_before_else = false
+csharp_new_line_before_finally = false
+csharp_new_line_before_members_in_anonymous_types = false
+csharp_new_line_before_members_in_object_initializers = false
+csharp_new_line_before_open_brace = false
+csharp_new_line_between_query_expression_clauses = false

@@ -1,0 +1,14 @@
+# Sample alias configuration file
+
+# Character set conversion (optional)
+CHARSET_CONV=UTF-8,GBK
+alias git='C:\git*\git.exe'
+
+# Visual Studio Code
+# Process replacement switch (exit immediately after 10 sec)
+EXEC=10
+alias code='"C:\Program Files\*VS Code\Code.exe" --reuse-window'
+
+# Example with additional arguments, add log time prefix
+PREFIX='/[0-9]\.[0-9]/ && "%F %T %N "'
+alias ping=ping.exe
