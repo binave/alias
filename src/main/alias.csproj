@@ -3,11 +3,14 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace></RootNamespace>
     <AssemblyName>alias</AssemblyName>
-    <FileVersion>1.0.2</FileVersion>
+    <FileVersion>1.0.3</FileVersion>
     <Product>alias for windows</Product>
     <Nullable>enable</Nullable>
     <PublishAot>true</PublishAot>
+    <IsAotCompatible>true</IsAotCompatible>
+    <IlcUseEnvironmentalTools>true</IlcUseEnvironmentalTools>
     <RuntimeIdentifier Condition="'$(OS)' == 'Windows_NT' And '$(PlatformTarget)' == 'arm64'">win-arm64</RuntimeIdentifier>
     <RuntimeIdentifier Condition="'$(OS)' == 'Windows_NT' And '$(PlatformTarget)' == 'x64'">win-x64</RuntimeIdentifier>
     <OptimizationPreference>Size</OptimizationPreference>
@@ -15,8 +18,8 @@
     <InvariantGlobalization>false</InvariantGlobalization>
     <StackTraceSupport>false</StackTraceSupport>
     <IlcUseEnvironmentalTools>true</IlcUseEnvironmentalTools>
-    <BaseOutputPath>..\bin\publish\</BaseOutputPath>
-    <IntermediateOutputPath>..\bin\publish\obj\</IntermediateOutputPath>
+    <BaseOutputPath>..\..\bin\publish\</BaseOutputPath>
+    <IntermediateOutputPath>..\..\bin\publish\obj\</IntermediateOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,7 +32,7 @@
   <!-- 静态链接 SQLite -->
   <ItemGroup Condition="$(RuntimeIdentifier.StartsWith('win'))">
     <DirectPInvoke Include="e_sqlite3" />
-    <NativeLibrary Include="..\$(SQLITE_SRC)\e_sqlite3.lib" />
+    <NativeLibrary Include="..\..\$(SQLITE_SRC)\e_sqlite3.lib" />
   </ItemGroup>
 
 </Project>

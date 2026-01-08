@@ -1,72 +1,189 @@
-# Alias for windows
+# Alias for Windows
 
----------
-# Licensing
-alias is licensed under the Apache License, Version 2.0. See
-[LICENSE](https://github.com/binave/alias/blob/master/LICENSE) for the full
-license text.
+A powerful Windows command line alias utility for managing command aliases, environment variables,<br/> and output formatting through a configuration file.,<br/>
+Primarily used to reduce the length of the PATH environment variable.
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-import:
-* [sqlite](https://sqlite.org)
-* [SQLitePCL.raw](https://github.com/ericsink/SQLitePCL.raw)
----------
+- [简体中文](README.zh-CN.md)
 
+## Features
 
-```text
-alias.exe - Windows command line passthrough utility
+- **Alias Management**: Define command aliases through configuration files to simplify common commands
+- **Environment Variables**: Configure dedicated environment variables for each alias
+- **Wildcard Support**: Automatic wildcard path resolution (`C:\Tool*\app*.exe`)
+- **High-Performance Caching**: Use SQLite to cache resolved paths for significantly improved performance
+- **Output Prefix**: Support custom output prefixes, including dynamic timestamp formats
+- **Charset Conversion**: Support command output charset conversion (e.g., UTF-8 to GBK)
+- **Exec Mode**: Support process replacement mode with immediate or delayed exit options
+- **Symlink Support**: Automatically create symlinks for aliases for direct invocation
+- **Recursion Protection**: Detect and prevent infinite recursive alias calls
 
-USAGE:
-    alias [[OPTIONS]] [ARGS]...
-    alias <name> [ARGS]...
-    alias <name>=<path> [ARGS]...
+## Installation
 
-OPTIONS:
-    -h, --help, /?  Display this help message
-    -p  [-t]        Print cached results for aliases and paths
-    -r              Refresh cache
-    -e              Edit the %USERPROFILE%\.alias file (opens with notepad.exe
-                    by default). You can specify the editor by setting the
-                    ALIAS_EDITOR variable.
+### Building from Source
 
-DESCRIPTION:
-    A passthrough utility that reads configuration from %USERPROFILE%\.alias
-    to alias commands and set environment variables.
+- Project dependencies:
+    * dotnet sdk 8+
+    * Visual Studio 2022 build tools
+        * You can use [xlib.cmd](https://github.com/binave/xcmd/blob/develop/xlib.cmd) `vsi core -i` to automatically install Visual Studio 2022 without IDE. <br/>Or modify `VC_VARS_PATH` in [build.cmd](build.cmd) to the vs2002 installation directory.
 
-    The program matches its own filename (without extension) to alias definitions
-    in the configuration file and executes the corresponding command with all
-    arguments passed through.
+- Build the project: Simply run build.cmd.
 
-CONFIGURATION:
-    Use %USERPROFILE%\.alias as the configuration file, employing the Linux alias
-    format with support for wildcard searches.
-        e.g.
-            PREFIX=""%F %T %N ""
-            alias bfg='""C:\Program Files\java*\bin\java.exe"" -jar D:\bfg-*\bfg-*.jar'
-            alias git='C:\Git*\bin\git.exe'
+After building, the executable file will be located in the `bin/publish/` directory.
 
-    The configuration file supports the following keywords to define alias behavior:
+### Manual Installation
 
-        PREFIX=['/<regex>/ && ]""<text>""[']
-            Add prefixes during output, supporting date format specifiers. Regular
-            expressions can be added to determine whether prefixes are generated.
-            e.g.
-                PREFIX=""# %F %T %N ""
-                PREFIX='/-t/ && ""@ %F %T ""'
+1. Copy `alias.exe` to any directory in the system's PATH environment variable
+2. Ensure the directory has write permissions (for creating symlinks)
 
-        CHARSET_CONV=['/<regex>/ && ]""<from>,<to>""[']
-            Specify character set conversion for command output.
-            e.g.
-                CHARSET_CONV=""UTF-8,GBK""
-                CHARSET_CONV='/-s/ && ""UTF-8,GBK""'
+## Quick Start
 
-        EXEC=<bool|seconds>
-            Delay process replacement by the specified number of seconds.
+### 1. Create Configuration File
 
-        EXCL_ARG=<indexes>
-            Disable wildcard parsing for arguments at the specified comma-separated
-            indexes.
+The configuration file is located at `%USERPROFILE%\.alias` and will be created automatically on first run.
 
-
+```bash
+# Run alias.exe to create configuration file and open it
+alias.exe -e
 ```
+
+### 2. Configure Aliases
+
+Edit the configuration file and add alias definitions:
+
+```bash
+# Use wildcards (automatically match latest version)
+alias java='"C:\Program Files\java*\bin\java.exe"'
+
+# Disable color to fix diff garbled output
+GIT_CONFIG_PARAMETERS="'color.diff=never'"
+CHARSET_CONV='/diff/ && "UTF-8,GBK"'
+alias git='"D:\Tools\MinGit-*-busybox-*-bit\cmd\git.exe"'
+
+# Alias with arguments
+alias node='"C:\Program Files\nodejs\node.exe" --use-openssl-ca'
+
+# Automatically add timestamp prefix when ping
+PREFIX='/[^\.]\.[^\.]/ && "%F %T %N "'
+alias ping=ping.exe
+
+# Set environment variable, exit alias process after 5 seconds while keeping idea process
+JAVA_HOME="C:\Program Files\java\jdk-17"
+EXEC=5
+alias idea='D:\ideaIC-20*.win\bin\idea.bat'
+```
+
+### 3. Use Aliases
+
+```bash
+# Call through alias.exe, will create target symlink
+alias.exe git clone https://github.com/binave/alias.git
+
+# Use alias directly
+git clone https://github.com/binave/alias.git
+```
+
+## Configuration
+
+The configuration file uses Linux shell-like syntax to define aliases:
+
+```bash
+# Temporary alias definition, actually calls doskey, only valid for current session
+alias <name>='<command>'
+
+# Global environment variables (effective for all subsequent aliases)
+export VAR1=1
+
+# Temporary environment variable (only effective for next alias)
+VAR=value
+alias name='command'
+
+# Prefix configuration (with conditional judgment)
+PREFIX='/-t/ && "# %F %T "'  # Add timestamp prefix only when argument contains -t
+alias name='command'
+PREFIX='# %F %T %N '          # Add prefix to all output
+alias name='command'
+
+# Charset conversion, convert UTF-8 output to GBK only when argument contains -diff
+CHARSET_CONV='/-diff/ && "UTF-8,GBK"'
+alias name='command'
+
+# Exec mode
+EXEC=true                     # Exit parent process immediately, keep child process
+alias name='command'
+EXEC=5                        # Exit parent process after 5 seconds, keep child process
+alias name='command'
+
+# Exclude argument wildcard parsing
+EXCL_ARG=1,2                  # Don't parse wildcards for arguments 1 and 2
+alias name='command arg*1 arg*2'
+```
+
+### Prefix Format
+
+Prefix supports the following placeholders (similar to Linux date command format):
+
+| Placeholder | Description | Example |
+|-------------|-------------|---------|
+| `%F` | Full date | 2026-01-01 |
+| `%T` | Full time | 12:30:45 |
+| `%Y` | Year (4 digits) | 2026 |
+| `%y` | Year (2 digits) | 26 |
+| `%m` | Month | 01 |
+| `%d` | Day | 02 |
+| `%H` | Hour (24-hour format) | 15 |
+| `%I` | Hour (12-hour format) | 03 |
+| `%M` | Minute | 30 |
+| `%S` | Second | 45 |
+| `%N` | Millisecond | 123 |
+| `%n` | Newline | |
+| `%t` | Tab | |
+| `%%` | Percent sign | % |
+
+## Command Line Options
+
+```bash
+# Display help information
+alias.exe -h
+alias.exe --help
+alias.exe /?
+
+# Print cache contents (show resolved paths)
+alias.exe -p
+alias.exe -p -t    # Show update timestamps
+
+# Refresh cache (delete and rebuild)
+alias.exe -r       # Requires admin privileges or developer mode
+
+# Edit configuration file
+alias.exe -e       # Use editor specified by ALIAS_EDITOR environment variable, default is notepad.exe
+
+# Define temporary alias (pass through to doskey.exe)
+alias.exe name='command $*'
+
+# Call specific alias
+alias.exe <name> [args...]
+```
+
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `ALIAS_EDITOR` | Configuration file editor path | notepad.exe |
+| `ALIAS_MAX_DEPTH` | Maximum recursion depth (prevent infinite recursion) | 9 |
+
+## Dependencies
+
+- [sqlite](https://sqlite.org) - Embedded database
+- [SQLitePCL.raw](https://github.com/ericsink/SQLitePCL.raw) - SQLite native binding
+
+## License
+
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) file for details.
+
+## Credits
+
+`Forked` from [Scoop/shim](https://github.com/ScoopInstaller/Shim/blob/b0bdac7f4f72dce44e4af1c774243905b5548e1d/src/shim.cs), this project has been fully refactored and now differs significantly from its source in structure and functionality.
+
 

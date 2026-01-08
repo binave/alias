@@ -1,5 +1,6 @@
 @echo off
 setlocal
+set "VC_VARS_PATH=%ProgramFiles(x86)%\Microsoft Visual Studio"
 set SQLITE_URL=https://sqlite.org/2025/sqlite-amalgamation-3510100.zip
 
 set SQLITE_SRC=
@@ -35,11 +36,13 @@ if not defined SQLITE_SRC (
     exit /b 1
 )
 
-:: Initialize Visual Studio build environment
->nul call "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat" || (
-    >&2 echo can not found Visual Studio build environment in '%ProgramFiles(x86)%\Microsoft Visual Studio'
+if not exist "%VC_VARS_PATH%\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat" (
+    >&2 echo Visual Studio Build Tools not found in "%VC_VARS_PATH%"
     exit /b 1
 )
+
+:: Initialize Visual Studio build environment
+>nul call "%VC_VARS_PATH%\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
 
 :: ============================================================================
 :: Build SQLite static library
@@ -81,7 +84,7 @@ if not exist "%SQLITE_SRC%\e_sqlite3.lib" (
 :: ============================================================================
 :: Build .NET NativeAOT application
 :: ============================================================================
-dotnet publish src\alias.csproj -c Release -o bin\publish || exit /b %errorlevel%
+dotnet publish src\main\alias.csproj -c Release -o bin\publish || exit /b %errorlevel%
 
 :: ============================================================================
 :: Verify output is native code (not IL/CLR)

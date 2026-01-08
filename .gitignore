@@ -17,6 +17,7 @@
 !.gitignore
 !LICENSE
 !README.md
+!README.zh-CN.md
 !build.cmd
 
 # Ignore some directory
