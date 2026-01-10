@@ -35,8 +35,8 @@ internal static class HelpDisplay {
 alias - Windows command line passthrough utility
 
 SYNOPSIS
-    alias [OPTIONS] [ARGS]...
-    alias <name> [ARGS]...
+    alias [[OPTIONS]] [[ARGS]]...
+    alias <name> [[ARGS]]...
     alias <name>=<command>
 
 DESCRIPTION
@@ -51,7 +51,7 @@ OPTIONS
     -h, --help, /?
         Display this help message.
 
-    -p [-t]
+    [-p [-t]]
         Print cached results for aliases and paths. Use -t to show timestamps.
 
     -r
@@ -71,28 +71,42 @@ ENVIRONMENT
 
 CONFIGURATION
     Configuration file: %USERPROFILE%\.alias
-
-    Use Linux alias format with support for wildcard searches:
-
-        PREFIX=""<text>""
+    Use Linux alias format with support for wildcard searches.
+    e.g.
+        PREFIX=""%F %T %N [%PID] ""
         alias bfg='""C:\Program Files\java*\bin\java.exe"" -jar D:\bfg-*\bfg-*.jar'
         alias git='C:\Git*\bin\git.exe'
 
     Keywords:
-        PREFIX=['/<regex>/ && ]""<text>""
+        PREFIX=['/<regex>/ && ]""<text>""[']
             Add prefixes during output, supporting date format specifiers.
-            e.g. PREFIX=""# %F %T %N ""
-                 PREFIX='/-t/ && ""@ %F %T ""'
+            e.g.
+                PREFIX=""# %F %T %N [%PID] ""
+                PREFIX='/\-t / && ""NAME: %F %T %PID ""'
 
-        CHARSET_CONV=['/<regex>/ && ]""<from>,<to>""
+            Format specifiers:
+                %Y - Year (4 digits)    %y - Year (2 digits)
+                %m - Month              %d - Day
+                %H - Hour (24h)         %I - Hour (12h)
+                %M - Minute             %S - Second
+                %F - Date (YYYY-MM-DD)  %T - Time (HH:MM:SS)
+                %N - Milliseconds       %PID - target process ID
+                %n - Newline            %t - Tab
+                %% - Literal %
+
+        CHARSET_CONV=['/<regex>/ && ]""<from>,<to>""[']
             Specify character set conversion for command output.
-            e.g. CHARSET_CONV=""UTF-8,GBK""
-
-        EXEC=<bool|seconds>
-            Delay process replacement by the specified number of seconds.
+            e.g.
+                CHARSET_CONV=""UTF-8,GBK""
+                CHARSET_CONV='/diff/ && ""UTF-8,GBK""'
 
         EXCL_ARG=<indexes>
             Disable wildcard parsing for arguments at specified indexes.
+            Multiple numbers should be separated by ',' commas.
+
+        EXEC=<bool|seconds>
+            Delay process replacement by the specified number of seconds.
+            EXEC is mutually exclusive with PREFIX and CHARSET_CONV.
 
 ");
     }
@@ -125,7 +139,6 @@ CONFIGURATION
                 Console.WriteLine(line);
             }
         }
-        Console.WriteLine();
 
         // 执行 doskey.exe /macros 并添加前缀
         ProcessExecutor.ExecuteWithPrefix("doskey.exe /macros", "doskey ");

@@ -20,14 +20,22 @@ namespace org.binave.alias.tool;
 /// <summary>前缀格式化器 - 支持类似 Linux date 命令的格式</summary>
 internal static class PrefixFormatter {
     /// <summary>格式化前缀字符串</summary>
-    /// <param name="format">格式字符串，支持 %Y %m %d %H %M %S %F %T 等</param>
+    /// <param name="format">格式字符串，支持 %Y %m %d %H %M %S %F %T %PID 等</param>
+    /// <param name="pid">子进程 PID（用于 %PID 格式符）</param>
     /// <returns>格式化后的字符串</returns>
-    public static string Format(string format) {
+    public static string Format(string format, int pid = 0) {
         var now = DateTime.Now;
         var sb = new StringBuilder(format.Length * 2);
 
         for (int i = 0; i < format.Length; i++) {
             if (format[i] == '%' && i + 1 < format.Length) {
+                // 检查 %PID（3字符格式符）
+                if (i + 4 <= format.Length && format.Substring(i + 1, 3) == "PID") {
+                    sb.Append(pid);
+                    i += 3;  // 跳过 PID，循环会再 +1
+                    continue;
+                }
+
                 char spec = format[++i];
                 sb.Append(spec switch {
                     'Y' => now.Year.ToString("D4"),           // 年份 4位

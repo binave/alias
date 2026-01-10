@@ -3,6 +3,8 @@ setlocal
 set "VC_VARS_PATH=%ProgramFiles(x86)%\Microsoft Visual Studio"
 set SQLITE_URL=https://sqlite.org/2025/sqlite-amalgamation-3510100.zip
 
+pushd "%~dp0"
+
 set SQLITE_SRC=
 call :search-sqlite-amalgamation SQLITE_SRC
 
@@ -97,6 +99,8 @@ dumpbin /dependents bin\publish\alias.exe | findstr /i /r ^
             >&2 echo [ERROR] 'alias.exe' is IL/CLR
             exit /b 1
         )
+
+popd
 
 doskey.exe vcpkg-shell=
 echo Build completed successfully.

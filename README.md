@@ -75,12 +75,13 @@ alias git='"D:\Tools\MinGit-*-busybox-*-bit\cmd\git.exe"'
 # Alias with arguments
 alias node='"C:\Program Files\nodejs\node.exe" --use-openssl-ca'
 
-# Automatically add timestamp prefix when ping
-PREFIX='/[^\.]\.[^\.]/ && "%F %T %N "'
+# Add a dynamic timestamp prefix to ping operations, along with the process ID.
+PREFIX='/[^\.]\.[^\.]/ && "PING: %F %T %N %PID "'
 alias ping=ping.exe
 
 # Set environment variable, exit alias process after 5 seconds while keeping idea process
 JAVA_HOME="C:\Program Files\java\jdk-17"
+# EXEC is mutually exclusive with PREFIX and CHARSET_CONV.
 EXEC=5
 alias idea='D:\ideaIC-20*.win\bin\idea.bat'
 ```
@@ -111,14 +112,14 @@ VAR=value
 alias name='command'
 
 # Prefix configuration (with conditional judgment)
-PREFIX='/-t/ && "# %F %T "'  # Add timestamp prefix only when argument contains -t
-alias name='command'
+PREFIX='/\-t / && "# %F %T "' # Add timestamp prefix only when argument contains '-t'
+alias name='command -t arg1'
 PREFIX='# %F %T %N '          # Add prefix to all output
 alias name='command'
 
-# Charset conversion, convert UTF-8 output to GBK only when argument contains -diff
-CHARSET_CONV='/-diff/ && "UTF-8,GBK"'
-alias name='command'
+# Charset conversion, convert UTF-8 output to GBK only when argument contains 'diff'
+CHARSET_CONV='/diff/ && "UTF-8,GBK"'
+alias name='command diff'
 
 # Exec mode
 EXEC=true                     # Exit parent process immediately, keep child process
@@ -137,6 +138,7 @@ Prefix supports the following placeholders (similar to Linux date command format
 
 | Placeholder | Description | Example |
 |-------------|-------------|---------|
+| `%PID` | target process ID | 12345 |
 | `%F` | Full date | 2026-01-01 |
 | `%T` | Full time | 12:30:45 |
 | `%Y` | Year (4 digits) | 2026 |
@@ -161,6 +163,7 @@ alias.exe --help
 alias.exe /?
 
 # Print cache contents (show resolved paths)
+alias.exe
 alias.exe -p
 alias.exe -p -t    # Show update timestamps
 

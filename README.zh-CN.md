@@ -73,12 +73,13 @@ alias git='"D:\Tools\MinGit-*-busybox-*-bit\cmd\git.exe"'
 # 带参数的别名
 alias node='"C:\Program Files\nodejs\node.exe" --use-openssl-ca'
 
-# ping 时自动增加时间戳前缀
-PREFIX='/[^\.]\.[^\.]/ && "%F %T %N "'
+# ping 时增加时间戳前缀和进程id
+PREFIX='/[^\.]\.[^\.]/ && "PING: %F %T %N %PID "'
 alias ping=ping.exe
 
 # 设置环境变量，5 秒后退出 alias 进程保留 idea 进程
 JAVA_HOME="C:\Program Files\java\jdk-17"
+# EXEC 与 PREFIX 和 CHARSET_CONV 互斥
 EXEC=5
 alias idea='D:\ideaIC-20*.win\bin\idea.bat'
 ```
@@ -109,14 +110,14 @@ VAR=value
 alias name='command'
 
 # 前缀配置（带条件判断）
-PREFIX='/-t/ && "# %F %T "'  # 仅当参数包含 -t 时添加时间戳前缀
-alias name='command'
+PREFIX='/\-t / && "# %F %T "' # 仅当参数包含 -t 时添加时间戳前缀
+alias name='command -t arg1'
 PREFIX='# %F %T %N '          # 所有输出都添加前缀
 alias name='command'
 
-# 字符集转换，仅当参数包含 -diff 时将 UTF-8 输出转换为 GBK
-CHARSET_CONV='/-diff/ && "UTF-8,GBK"'
-alias name='command'
+# 字符集转换，仅当参数包含 diff 时将 UTF-8 输出转换为 GBK
+CHARSET_CONV='/diff/ && "UTF-8,GBK"'
+alias name='command diff'
 
 # Exec 模式
 EXEC=true                     # 立即退出父进程，保留子进程
@@ -135,6 +136,7 @@ alias name='command arg*1 arg*2'
 
 | 占位符 | 说明 | 示例 |
 |--------|------|------|
+| `%PID` | 目标进程ID | 12345 |
 | `%F` | 完整日期 | 2026-01-01 |
 | `%T` | 完整时间 | 12:30:45 |
 | `%Y` | 年份（4位） | 2026 |
@@ -159,6 +161,7 @@ alias.exe --help
 alias.exe /?
 
 # 打印缓存内容（显示已解析的路径）
+alias.exe
 alias.exe -p
 alias.exe -p -t    # 显示更新时间
 

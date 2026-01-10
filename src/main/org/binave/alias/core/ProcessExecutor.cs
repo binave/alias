@@ -161,7 +161,7 @@ internal static class ProcessExecutor {
 
     /// <summary>执行命令并处理输出（支持前缀和字符集转换）</summary>
     /// <param name="commandLine">完整的命令行字符串</param>
-    /// <param name="prefix">可选的前缀格式（支持 %F %T 等）</param>
+    /// <param name="prefix">可选的前缀格式（支持 %F %T %PID 等）</param>
     /// <param name="charsetConv">可选的字符集转换配置（如 UTF-8,GBK）</param>
     /// <returns>进程退出代码</returns>
     public static int ExecuteWithOutputProcessing(string commandLine, string? prefix, string? charsetConv) {
@@ -171,6 +171,7 @@ internal static class ProcessExecutor {
         if (result == null) return Marshal.GetLastWin32Error();
 
         var (hReadPipe, pi) = result.Value;
+        int targetPid = pi.dwProcessId;  // 子进程 PID
         var buffer = new byte[4096];
         bool needConvert = fromEncoding != toEncoding;
 
@@ -183,7 +184,7 @@ internal static class ProcessExecutor {
                 string chunk = fromEncoding.GetString(buffer, 0, (int)bytesRead);
                 foreach (char c in chunk) {
                     if (c == '\n') {
-                        string line = $"{(isDynamic ? PrefixFormatter.Format(prefix) : prefix)}{lineBuffer}\r\n";
+                        string line = $"{(isDynamic ? PrefixFormatter.Format(prefix, targetPid) : prefix)}{lineBuffer}\r\n";
                         if (needConvert) {
                             var bytes = toEncoding.GetBytes(line);
                             Console.OpenStandardOutput().Write(bytes, 0, bytes.Length);
@@ -198,7 +199,7 @@ internal static class ProcessExecutor {
             }
 
             if (lineBuffer.Length > 0) {
-                string line = $"{(isDynamic ? PrefixFormatter.Format(prefix) : prefix)}{lineBuffer}\r\n";
+                string line = $"{(isDynamic ? PrefixFormatter.Format(prefix, targetPid) : prefix)}{lineBuffer}\r\n";
                 if (needConvert) {
                     var bytes = toEncoding.GetBytes(line);
                     Console.OpenStandardOutput().Write(bytes, 0, bytes.Length);

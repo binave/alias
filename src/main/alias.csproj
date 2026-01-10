@@ -5,7 +5,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <RootNamespace></RootNamespace>
     <AssemblyName>alias</AssemblyName>
-    <FileVersion>1.0.3</FileVersion>
+    <FileVersion>1.1.0</FileVersion>
     <Product>alias for windows</Product>
     <Nullable>enable</Nullable>
     <PublishAot>true</PublishAot>
