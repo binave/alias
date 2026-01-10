@@ -98,6 +98,7 @@ dumpbin /dependents bin\publish\alias.exe | findstr /i /r ^
             exit /b 1
         )
 
+doskey.exe vcpkg-shell=
 echo Build completed successfully.
 
 endlocal

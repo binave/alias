@@ -1,7 +1,18 @@
 # Alias for Windows
 
 A powerful Windows command line alias utility for managing command aliases, environment variables,<br/> and output formatting through a configuration file.,<br/>
-Primarily used to reduce the length of the PATH environment variable.
+
+🚀 Motivation
+- On Windows, creating symbolic links (symlinks) for .exe files often fails because the required .dll dependencies cannot be found. This issue does not occur on Linux or macOS.
+
+✨ Problems Solved
+- **Hardcoded Arguments**: Common commands are bundled with their fixed arguments, eliminating the need to type them repeatedly.
+- **Simplified PATH**: Drastically reduces the length of the PATH environment variable. After reinstalling your system, you only need to add a single directory to PATH.
+- **Version Management**: When command-line tools are updated, you no longer need to manually update version numbers embedded in file paths.
+- **Linux-style Aliases**: Supports Linux-like alias configuration syntax for seamless compatibility with WSL shell environments.
+- **IDE Compatibility**: Some IDEs do not support aliases defined via doskey or batch scripts (.bat), but they do accept direct .exe paths.
+- **Enhanced Utilities**: Automatically adds dynamic timestamps to commands like ping for better logging and debugging.
+- **Encoding Fix**: Handles garbled output from certain cross-platform CLI tools when they output non-English text.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
@@ -13,8 +24,8 @@ Primarily used to reduce the length of the PATH environment variable.
 - **Environment Variables**: Configure dedicated environment variables for each alias
 - **Wildcard Support**: Automatic wildcard path resolution (`C:\Tool*\app*.exe`)
 - **High-Performance Caching**: Use SQLite to cache resolved paths for significantly improved performance
-- **Output Prefix**: Support custom output prefixes, including dynamic timestamp formats
-- **Charset Conversion**: Support command output charset conversion (e.g., UTF-8 to GBK)
+- **Output Prefix**: Support custom output prefixes, including dynamic timestamp formats, Supports parameter matching
+- **Charset Conversion**: Support command output charset conversion (e.g., UTF-8 to GBK), Supports parameter matching
 - **Exec Mode**: Support process replacement mode with immediate or delayed exit options
 - **Symlink Support**: Automatically create symlinks for aliases for direct invocation
 - **Recursion Protection**: Detect and prevent infinite recursive alias calls
