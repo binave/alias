@@ -12,7 +12,7 @@
 - **Linux 风格支持**：支持类似 Linux 的 alias 配置格式，便于兼容 WSL 的 shell 环境。
 - **IDE 兼容性**：部分 IDE 不支持通过 doskey 设置的命令别名或批处理脚本（.bat），但支持直接填写 .exe 路径。
 - **增强功能**：为 ping 等命令自动添加时动态间戳，便于日志追踪。
-- **编码兼容**：自动处理部分跨平台命令行工具在非英文输出时出现的乱码问题。
+- **编码兼容**：处理部分跨平台命令行工具在非英文输出时出现的乱码问题。
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 

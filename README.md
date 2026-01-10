@@ -1,5 +1,7 @@
 # Alias for Windows
 
+- [简体中文](README.zh-CN.md)
+
 A powerful Windows command line alias utility for managing command aliases, environment variables,<br/> and output formatting through a configuration file.,<br/>
 
 🚀 Motivation
@@ -15,8 +17,6 @@ A powerful Windows command line alias utility for managing command aliases, envi
 - **Encoding Fix**: Handles garbled output from certain cross-platform CLI tools when they output non-English text.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-
-- [简体中文](README.zh-CN.md)
 
 ## Features
 
