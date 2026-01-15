@@ -1,5 +1,7 @@
 # Alias for Windows
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
 一个 Windows 命令行别名工具，通过配置文件管理命令别名、环境变量和输出格式。<br/>
 
 🚀 开发缘由
@@ -13,8 +15,6 @@
 - **IDE 兼容性**：部分 IDE 不支持通过 doskey 设置的命令别名或批处理脚本（.bat），但支持直接填写 .exe 路径。
 - **增强功能**：为 ping 等命令自动添加时动态间戳，便于日志追踪。
 - **编码兼容**：处理部分跨平台命令行工具在非英文输出时出现的乱码问题。
-
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 ## 功能特性
 
@@ -35,7 +35,7 @@
 - 项目依赖：
     * dotnet sdk 8+
     * Visual Studio 2022 build tools
-        * 可以使用 [xlib.cmd](https://github.com/binave/xcmd/blob/develop/xlib.cmd) vsi core -i 自动安装没有 IDE 的 Visual Studio 2022。<br/>或者修改 [build.cmd](build.cmd) 中 `VC_VARS_PATH` 的值为 vs2002 安装目录。
+        * 可以使用 [xlib.cmd](https://github.com/binave/xcmd/blob/develop/xlib.cmd) `vsi core 2022 -i` 自动安装没有 IDE 的 Visual Studio 2022。<br/>或者修改 [build.cmd](build.cmd) 中 `VC_VARS_PATH` 的值为 vs2002 安装目录。
 
 - 构建项目：直接执行 build.cmd 即可。
 
@@ -54,7 +54,7 @@
 
 ```bash
 # 运行 alias.exe 创建配置文件并打开
-alias.exe -e
+alias -e
 ```
 
 ### 2. 配置别名
@@ -87,8 +87,8 @@ alias idea='D:\ideaIC-20*.win\bin\idea.bat'
 ### 3. 使用别名
 
 ```bash
-# 通过 alias.exe 调用，将会建立目标软连接。
-alias.exe git clone https://github.com/binave/alias.git
+# 通过 alias 调用，将会建立目标软连接。
+alias git clone https://github.com/binave/alias.git
 
 # 直接使用别名
 git clone https://github.com/binave/alias.git
@@ -156,26 +156,26 @@ alias name='command arg*1 arg*2'
 
 ```bash
 # 显示帮助信息
-alias.exe -h
-alias.exe --help
-alias.exe /?
+alias -h
+alias --help
+alias /?
 
 # 打印缓存内容（显示已解析的路径）
-alias.exe
-alias.exe -p
-alias.exe -p -t    # 显示更新时间
+alias
+alias -p
+alias -p -t    # 显示更新时间
 
 # 刷新缓存（删除并重建）
-alias.exe -r       # 需要管理员权限或开发者模式
+alias -r       # 需要管理员权限或开发者模式
 
 # 编辑配置文件
-alias.exe -e       # 使用 ALIAS_EDITOR 环境变量指定的编辑器，默认为 notepad.exe
+alias -e       # 使用 ALIAS_EDITOR 环境变量指定的编辑器，默认为 notepad.exe
 
 # 定义临时别名（透传给 doskey.exe）
-alias.exe name='command $*'
+alias name='command $*'
 
 # 调用指定别名
-alias.exe <name> [args...]
+alias <name> [args...]
 ```
 
 ## 环境变量

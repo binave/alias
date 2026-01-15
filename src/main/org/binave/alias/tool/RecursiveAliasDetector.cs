@@ -14,6 +14,8 @@
 
 using System;
 using org.binave.alias.api;
+using org.binave.alias.entity;
+using org.binave.alias.data;
 
 namespace org.binave.alias.tool;
 
@@ -27,33 +29,77 @@ internal static class RecursiveAliasDetector {
     private const string AliasMaxDepthEnvVar = "ALIAS_MAX_DEPTH";
     private const int DefaultMaxAliasDepth = 9;
 
-    /// <summary>获取最大别名深度（从环境变量或默认值）</summary>
-    private static int GetMaxDepth() {
-        string? maxDepthStr = Environment.GetEnvironmentVariable(AliasMaxDepthEnvVar);
-        return int.TryParse(maxDepthStr, out int maxDepth) && maxDepth > 0 ? maxDepth : DefaultMaxAliasDepth;
-    }
 
-    /// <summary>检查别名深度是否超过限制</summary>
+    /// <summary>检查并递增别名深度</summary>
+    /// <param name="exceeded">输出：是否超过最大深度限制</param>
+    /// <param name="atThreshold">输出：是否达到深度阈值（用于触发回退搜索）</param>
     /// <returns>如果超过限制返回错误消息，否则返回 null</returns>
-    public static string? CheckDepth() {
+    /// <remarks>
+    /// 每次 alias.exe 执行时调用：
+    /// - 检查当前深度是否超过限制
+    /// - 检查是否达到阈值（用于回退搜索）
+    /// - 递增深度计数器
+    /// </remarks>
+    public static string? CheckAndIncrement() {
         string? depthStr = Environment.GetEnvironmentVariable(AliasDepthEnvVar);
-        if (depthStr == null) return null;
-        int maxDepth = GetMaxDepth();
-        if (int.TryParse(depthStr, out int depth) && depth > maxDepth) {
-            return $"alias: maximum recursion depth ({maxDepth}) exceeded";
+        int depth = 0;
+
+        if (depthStr != null && int.TryParse(depthStr, out int d)) {
+            depth = d;
+            int maxDepth = int.TryParse(
+                Environment.GetEnvironmentVariable(AliasMaxDepthEnvVar),
+                out int tmpMaxDepth
+            ) && tmpMaxDepth > 0 ? tmpMaxDepth : DefaultMaxAliasDepth;
+            if (depth > maxDepth) {
+                return $"maximum recursion depth ({maxDepth}) exceeded";
+            }
         }
+
+        // 递增深度
+        NativeApi.SetEnvironmentVariable(AliasDepthEnvVar, (depth + 1).ToString());
         return null;
     }
 
-    /// <summary>递增别名深度</summary>
+    /// <summary>执行回退搜索并更新缓存</summary>
+    /// <param name="configPath">配置文件路径</param>
+    /// <param name="exeName">可执行文件名</param>
+    /// <param name="cacheKey">缓存键</param>
+    /// <param name="cached">缓存条目</param>
+    /// <returns>(成功标志, 错误消息, 解析后的路径)</returns>
     /// <remarks>
-    /// 每次 alias.exe 执行时调用：
-    /// - 如果 ALIAS_DEPTH 不存在，设置为 0
-    /// - 如果 ALIAS_DEPTH 存在，递增 1
+    /// 当递归深度达到阈值时，跳过缓存路径之前的目录继续搜索。
+    /// 如果找到新路径，更新缓存；如果失败，返回错误信息。
     /// </remarks>
-    public static void IncrementDepth() {
-        string? depthStr = Environment.GetEnvironmentVariable(AliasDepthEnvVar);
-        int depth = int.TryParse(depthStr, out int d) ? d + 1 : 0;
-        NativeApi.SetEnvironmentVariable(AliasDepthEnvVar, depth.ToString());
+    public static string? FallbackSearch(string configPath, string cacheKey, CacheEntry cached) {
+        var config = ConfigParser.Parse(configPath, cacheKey);
+        if (config == null || string.IsNullOrEmpty(config.AliasCommand)) {
+            return null;
+        }
+
+        string targetPath = PathResolver.ExtractExecutablePath(config.AliasCommand);
+        if (string.IsNullOrEmpty(targetPath)) {
+            return $"invalid command path in {configPath}:{config.LineNumber}";
+        }
+        targetPath = Environment.ExpandEnvironmentVariables(targetPath);
+
+        // 判断是简单文件名还是绝对路径
+        if (PathResolver.IsSimpleFileName(targetPath)) {
+            // 简单文件名：跳过缓存路径之前的目录继续搜索
+            string? resolved = PathResolver.SearchInPathInternal(targetPath, cached.Value);
+            if (resolved != null) {
+                // 更新缓存为新找到的路径
+                CacheManager.UpdateCache(cacheKey, resolved, cached.Args, cached.Env,
+                    cached.ExecMode, cached.Prefix, cached.PrefixCondition,
+                    cached.CharsetConv, cached.CharsetConvCondition);
+                return null;
+
+            } else {
+                return $"'{targetPath}' not found in PATH after cached location";
+            }
+        } else {
+            // 绝对路径：报错显示路径和行号
+            return $"absolute path cannot be resolved: {targetPath}\n              {configPath}:{config.LineNumber}";
+        }
     }
+
 }

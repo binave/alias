@@ -62,7 +62,7 @@ internal static class ProcessExecutor {
             IntPtr.Zero, null!,
             ref si, out var pi)) {
             int error = Marshal.GetLastWin32Error();
-            Console.Error.WriteLine($"alias failed to create process. Error code: {error}");
+            Console.Error.WriteLine($"[ERROR] alias failed to create process. Error code: {error}");
             return error;
         }
 
@@ -101,7 +101,7 @@ internal static class ProcessExecutor {
 
         var parts = charsetConv.Split(',');
         if (parts.Length != 2) {
-            Console.Error.WriteLine($"Invalid CHARSET_CONV format: {charsetConv}");
+            Console.Error.WriteLine($"[ERROR] Invalid CHARSET_CONV format: {charsetConv}");
             fromEncoding = toEncoding = Encoding.GetEncoding(Console.OutputEncoding.CodePage);
             return false;
         }
@@ -111,7 +111,7 @@ internal static class ProcessExecutor {
             toEncoding = Encoding.GetEncoding(parts[1].Trim());
             return true;
         } catch {
-            Console.Error.WriteLine($"Invalid encoding in CHARSET_CONV: {charsetConv}");
+            Console.Error.WriteLine($"[ERROR] Invalid encoding in CHARSET_CONV: {charsetConv}");
             fromEncoding = toEncoding = Encoding.GetEncoding(Console.OutputEncoding.CodePage);
             return false;
         }
@@ -141,7 +141,7 @@ internal static class ProcessExecutor {
         if (!NativeApi.CreateProcess(null!, commandLine, IntPtr.Zero, IntPtr.Zero, true, 0, IntPtr.Zero, null!, ref si, out var pi)) {
             NativeApi.CloseHandle(hReadPipe);
             NativeApi.CloseHandle(hWritePipe);
-            Console.Error.WriteLine($"alias failed to create process. Error code: {Marshal.GetLastWin32Error()}");
+            Console.Error.WriteLine($"[ERROR] alias failed to create process. Error code: {Marshal.GetLastWin32Error()}");
             return null;
         }
 
@@ -164,7 +164,7 @@ internal static class ProcessExecutor {
     /// <param name="prefix">可选的前缀格式（支持 %F %T %PID 等）</param>
     /// <param name="charsetConv">可选的字符集转换配置（如 UTF-8,GBK）</param>
     /// <returns>进程退出代码</returns>
-    public static int ExecuteWithOutputProcessing(string commandLine, string? prefix, string? charsetConv) {
+    private static int ExecuteWithOutputProcessing(string commandLine, string? prefix, string? charsetConv) {
         ParseCharsetConv(charsetConv, out var fromEncoding, out var toEncoding);
 
         var result = CreatePipedProcess(commandLine);

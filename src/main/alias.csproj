@@ -5,21 +5,26 @@
     <TargetFramework>net9.0</TargetFramework>
     <RootNamespace></RootNamespace>
     <AssemblyName>alias</AssemblyName>
-    <FileVersion>1.1.0</FileVersion>
+    <FileVersion>1.1.1</FileVersion>
     <Product>alias for windows</Product>
     <Nullable>enable</Nullable>
     <PublishAot>true</PublishAot>
     <IsAotCompatible>true</IsAotCompatible>
     <IlcUseEnvironmentalTools>true</IlcUseEnvironmentalTools>
-    <RuntimeIdentifier Condition="'$(OS)' == 'Windows_NT' And '$(PlatformTarget)' == 'arm64'">win-arm64</RuntimeIdentifier>
-    <RuntimeIdentifier Condition="'$(OS)' == 'Windows_NT' And '$(PlatformTarget)' == 'x64'">win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(PlatformTarget)' == 'x86'">win-x86</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(PlatformTarget)' == 'x64' Or '$(PlatformTarget)' == 'amd64'">win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(PlatformTarget)' == 'arm64'">win-arm64</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TrimMode>full</TrimMode>
     <OptimizationPreference>Size</OptimizationPreference>
+    <EnableAggressiveTrimming>true</EnableAggressiveTrimming>
     <IlcOptimizationPreference>Size</IlcOptimizationPreference>
     <InvariantGlobalization>false</InvariantGlobalization>
     <StackTraceSupport>false</StackTraceSupport>
-    <IlcUseEnvironmentalTools>true</IlcUseEnvironmentalTools>
-    <BaseOutputPath>..\..\bin\publish\</BaseOutputPath>
-    <IntermediateOutputPath>..\..\bin\publish\obj\</IntermediateOutputPath>
+    <HttpWebSocket>false</HttpWebSocket>
+    <EventSourceSupport>false</EventSourceSupport>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,10 +34,17 @@
     <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.0" />
   </ItemGroup>
 
-  <!-- 静态链接 SQLite -->
   <ItemGroup Condition="$(RuntimeIdentifier.StartsWith('win'))">
+    <LinkerArg Include="/OPT:REF" />
+    <LinkerArg Include="/OPT:ICF" />
+    <LinkerArg Condition="'$(Configuration)' == 'Release'" Include="/DEBUG:NONE" />
+    <LinkerArg Include="/RELEASE" />
     <DirectPInvoke Include="e_sqlite3" />
-    <NativeLibrary Include="..\..\$(SQLITE_SRC)\e_sqlite3.lib" />
+    <NativeLibrary Include="..\..\$(_SQLITE_OUT)\e_sqlite3.lib" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <RdXmlFile Include="rd.xml" />
   </ItemGroup>
 
 </Project>

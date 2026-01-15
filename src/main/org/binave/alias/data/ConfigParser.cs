@@ -65,10 +65,10 @@ internal static class ConfigParser {
 
         try {
             File.WriteAllText(configPath, ALIAS_HEAD);
-            Console.Error.WriteLine($"Created empty config file: {configPath}");
+            Console.Error.WriteLine($"[ERROR] Created empty config file: {configPath}");
             return true;
         } catch {
-            Console.Error.WriteLine($"Failed to create config file: {configPath}");
+            Console.Error.WriteLine($"[ERROR] Failed to create config file: {configPath}");
             return false;
         }
     }
@@ -97,7 +97,9 @@ internal static class ConfigParser {
         var tempEnvVars = new Dictionary<string, string>();
 
         try {
+            int lineNumber = 0;
             foreach (string rawLine in File.ReadLines(configPath)) {
+                lineNumber++;
                 string line = rawLine.Trim();
 
                 // 跳过空行和注释
@@ -109,6 +111,7 @@ internal static class ConfigParser {
                 if (aliasMatch.Success) {
                     if (aliasMatch.Groups[1].Value.Equals(aliasName, StringComparison.OrdinalIgnoreCase)) {
                         config.AliasCommand = StripQuotes(aliasMatch.Groups[2].Value);
+                        config.LineNumber = lineNumber; // 记录行号
                         // 合并临时环境变量到配置中
                         foreach (var kv in tempEnvVars) {
                             config.EnvironmentVars[kv.Key] = kv.Value;
@@ -175,7 +178,7 @@ internal static class ConfigParser {
                 }
             }
         } catch (Exception ex) {
-            Console.Error.WriteLine($"Error reading alias configuration file: {ex.Message}");
+            Console.Error.WriteLine($"[ERROR] Error reading alias configuration file: {ex.Message}");
             return null;
         }
 
@@ -232,18 +235,21 @@ internal static class ConfigParser {
         result = inner;
     }
 
-    /// <summary>获取配置文件中所有别名定义</summary>
+
+    /// <summary>获取配置文件中所有别名定义（包含行号）</summary>
     /// <param name="configPath">配置文件路径</param>
-    /// <returns>别名名称和命令的字典</returns>
-    public static Dictionary<string, string> GetAllAliases(string configPath) {
-        var aliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    /// <returns>别名信息列表（名称、命令、行号）</returns>
+    public static List<(string Name, string Command, int LineNumber)> GetAllAliasesWithLineNumbers(string configPath) {
+        var aliases = new List<(string Name, string Command, int LineNumber)>();
 
         if (!File.Exists(configPath)) {
             return aliases;
         }
 
         try {
+            int lineNumber = 0;
             foreach (string rawLine in File.ReadLines(configPath)) {
+                lineNumber++;
                 string line = rawLine.Trim();
 
                 // 跳过空行和注释
@@ -256,7 +262,7 @@ internal static class ConfigParser {
                 if (aliasMatch.Success) {
                     string name = aliasMatch.Groups[1].Value;
                     string command = StripQuotes(aliasMatch.Groups[2].Value);
-                    aliases[name] = command;
+                    aliases.Add((name, command, lineNumber));
                 }
             }
         } catch {

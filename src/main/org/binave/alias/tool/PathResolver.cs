@@ -81,7 +81,7 @@ internal static class PathResolver {
     }
 
     /// <summary>判断路径是否为简单文件名（无目录结构）</summary>
-    private static bool IsSimpleFileName(string path) {
+    public static bool IsSimpleFileName(string path) {
         return !path.Contains('\\') && !path.Contains('/') && !path.StartsWith('.');
     }
 
@@ -89,6 +89,14 @@ internal static class PathResolver {
     /// <param name="fileName">文件名（如 git.exe 或 git）</param>
     /// <returns>找到的完整路径，未找到返回 null</returns>
     public static string? SearchInPath(string fileName) {
+        return SearchInPathInternal(fileName, null);
+    }
+
+    /// <summary>从 PATH 环境变量中搜索可执行文件（内部实现）</summary>
+    /// <param name="fileName">文件名（如 git.exe 或 git）</param>
+    /// <param name="skipBeforePath">跳过此路径所在目录之前的所有目录（可为 null）</param>
+    /// <returns>找到的完整路径，未找到返回 null</returns>
+    public static string? SearchInPathInternal(string fileName, string? skipBeforePath) {
         // 获取 PATH 环境变量
         string? pathEnv = Environment.GetEnvironmentVariable("PATH");
         if (string.IsNullOrEmpty(pathEnv)) return null;
@@ -98,6 +106,12 @@ internal static class PathResolver {
         string? aliasExePath = Environment.ProcessPath;
         if (aliasExePath != null) {
             aliasExeDir = Path.GetDirectoryName(aliasExePath);
+        }
+
+        // 确定要跳过的目录（skipBeforePath 所在目录）
+        string? skipBeforeDir = null;
+        if (!string.IsNullOrEmpty(skipBeforePath)) {
+            skipBeforeDir = Path.GetDirectoryName(skipBeforePath);
         }
 
         // 确定要尝试的扩展名列表
@@ -111,12 +125,23 @@ internal static class PathResolver {
             if (!string.IsNullOrEmpty(pathExt)) {
                 extensions.AddRange(pathExt.Split(';', StringSplitOptions.RemoveEmptyEntries));
             } else {
-                extensions.AddRange(new[] { ".exe", ".cmd", ".bat", ".com" });
+                extensions.AddRange([".exe", ".cmd", ".bat", ".com"]);
             }
         }
 
+        bool foundSkipDir = skipBeforeDir == null; // 如果没有指定跳过目录，则不跳过
+
         foreach (string dir in pathEnv.Split(';', StringSplitOptions.RemoveEmptyEntries)) {
             string trimmedDir = dir.Trim();
+
+            // 检查是否到达要跳过的目录
+            if (!foundSkipDir) {
+                if (trimmedDir.Equals(skipBeforeDir, StringComparison.OrdinalIgnoreCase)) {
+                    foundSkipDir = true;
+                }
+                continue; // 跳过此目录之前的所有目录（包括此目录本身）
+            }
+
             foreach (string ext in extensions) {
                 string fullPath = Path.Combine(trimmedDir, fileName + ext);
                 if (File.Exists(fullPath)) {

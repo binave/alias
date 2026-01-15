@@ -153,7 +153,7 @@ CONFIGURATION
             try {
                 File.WriteAllText(configPath, ConfigParser.ALIAS_HEAD);
             } catch (Exception ex) {
-                Console.Error.WriteLine($"Failed to create config file: {ex.Message}");
+                Console.Error.WriteLine($"[ERROR] alias: Failed to create config file: {ex.Message}");
                 return;
             }
         }
@@ -172,8 +172,8 @@ CONFIGURATION
 
         // 检查是否有管理员权限
         if (!NativeApi.IsRunningAsAdmin()) {
-            Console.Error.WriteLine("alias: requires admin privileges or Developer Mode enabled.");
-            Console.Error.WriteLine("       Run as Administrator or enable Developer Mode in Windows Settings.");
+            Console.Error.WriteLine("[ERROR] alias: requires admin privileges or Developer Mode enabled.");
+            Console.Error.WriteLine("              Run as Administrator or enable Developer Mode in Windows Settings.");
             return;
         }
 
@@ -192,8 +192,8 @@ CONFIGURATION
             return;
         }
 
-        // 获取所有别名
-        var aliases = ConfigParser.GetAllAliases(configPath);
+        // 获取所有别名（包含行号）
+        var aliases = ConfigParser.GetAllAliasesWithLineNumbers(configPath);
         if (aliases.Count == 0) {
             Console.WriteLine("Cache cleared. No aliases found in config.");
             // 清理无效软链接
@@ -208,7 +208,7 @@ CONFIGURATION
         int failed = 0;
         var validKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var (name, command) in aliases) {
+        foreach (var (name, command, lineNumber) in aliases) {
             // 解析配置
             var config = ConfigParser.Parse(configPath, name);
             string keyLower = name.ToLowerInvariant();
@@ -255,7 +255,8 @@ CONFIGURATION
                     CreateSymlinkIfNeeded(exeDir, exeName, keyLower);
                 }
             } else {
-                Console.WriteLine($"  {name} -> [not found]");
+                // 显示未找到的路径和配置文件行号
+                Console.WriteLine($"[ERROR] {configPath}({lineNumber}): '{name}' -> '{targetPath}' failed.");
                 failed++;
             }
         }
@@ -287,10 +288,10 @@ CONFIGURATION
 
         // 创建软链接（使用相对路径）
         if (NativeApi.CreateSymbolicLink(linkPath, exeName, 0)) {
-            Console.WriteLine($"      [symlink] {aliasKey}.exe -> {exeName}");
+            Console.WriteLine($"\tsymlink '{aliasKey}.exe' -> '{exeName}' success.");
         } else {
             int error = Marshal.GetLastWin32Error();
-            Console.Error.WriteLine($"      [symlink] {aliasKey}.exe failed: error {error}");
+            Console.Error.WriteLine($"[ERROR] symlink '{aliasKey}.exe' failed: {error}");
         }
     }
 

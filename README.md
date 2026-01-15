@@ -1,5 +1,6 @@
 # Alias for Windows
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 - [简体中文](README.zh-CN.md)
 
 A powerful Windows command line alias utility for managing command aliases, environment variables,<br/> and output formatting through a configuration file.,<br/>
@@ -15,8 +16,6 @@ A powerful Windows command line alias utility for managing command aliases, envi
 - **IDE Compatibility**: Some IDEs do not support aliases defined via doskey or batch scripts (.bat), but they do accept direct .exe paths.
 - **Enhanced Utilities**: Automatically adds dynamic timestamps to commands like ping for better logging and debugging.
 - **Encoding Fix**: Handles garbled output from certain cross-platform CLI tools when they output non-English text.
-
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 ## Features
 
@@ -37,7 +36,7 @@ A powerful Windows command line alias utility for managing command aliases, envi
 - Project dependencies:
     * dotnet sdk 8+
     * Visual Studio 2022 build tools
-        * You can use [xlib.cmd](https://github.com/binave/xcmd/blob/develop/xlib.cmd) `vsi core -i` to automatically install Visual Studio 2022 without IDE. <br/>Or modify `VC_VARS_PATH` in [build.cmd](build.cmd) to the vs2002 installation directory.
+        * You can use [xlib.cmd](https://github.com/binave/xcmd/blob/develop/xlib.cmd) `vsi core 2022 -i` to automatically install Visual Studio 2022 without IDE. <br/>Or modify `VC_VARS_PATH` in [build.cmd](build.cmd) to the vs2002 installation directory.
 
 - Build the project: Simply run build.cmd.
 
@@ -56,7 +55,7 @@ The configuration file is located at `%USERPROFILE%\.alias` and will be created 
 
 ```bash
 # Run alias.exe to create configuration file and open it
-alias.exe -e
+alias -e
 ```
 
 ### 2. Configure Aliases
@@ -89,8 +88,8 @@ alias idea='D:\ideaIC-20*.win\bin\idea.bat'
 ### 3. Use Aliases
 
 ```bash
-# Call through alias.exe, will create target symlink
-alias.exe git clone https://github.com/binave/alias.git
+# Call through alias, will create target symlink
+alias git clone https://github.com/binave/alias.git
 
 # Use alias directly
 git clone https://github.com/binave/alias.git
@@ -158,26 +157,26 @@ Prefix supports the following placeholders (similar to Linux date command format
 
 ```bash
 # Display help information
-alias.exe -h
-alias.exe --help
-alias.exe /?
+alias -h
+alias --help
+alias /?
 
 # Print cache contents (show resolved paths)
-alias.exe
-alias.exe -p
-alias.exe -p -t    # Show update timestamps
+alias
+alias -p
+alias -p -t    # Show update timestamps
 
 # Refresh cache (delete and rebuild)
-alias.exe -r       # Requires admin privileges or developer mode
+alias -r       # Requires admin privileges or developer mode
 
 # Edit configuration file
-alias.exe -e       # Use editor specified by ALIAS_EDITOR environment variable, default is notepad.exe
+alias -e       # Use editor specified by ALIAS_EDITOR environment variable, default is notepad.exe
 
 # Define temporary alias (pass through to doskey.exe)
-alias.exe name='command $*'
+alias name='command $*'
 
 # Call specific alias
-alias.exe <name> [args...]
+alias <name> [args...]
 ```
 
 ## Environment Variables
@@ -199,5 +198,3 @@ This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) fi
 ## Credits
 
 `Forked` from [Scoop/shim](https://github.com/ScoopInstaller/Shim/blob/b0bdac7f4f72dce44e4af1c774243905b5548e1d/src/shim.cs), this project has been fully refactored and now differs significantly from its source in structure and functionality.
-
-

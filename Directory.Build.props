@@ -1,0 +1,12 @@
+<Project>
+    <PropertyGroup>
+        <SolutionDir>$(MSBuildThisFileDirectory)</SolutionDir>
+        <BaseOutputPath>$(SolutionDir)target\</BaseOutputPath>
+        <OutputPath>$(SolutionDir)target\$(Configuration)\$(MSBuildProjectName)\</OutputPath>
+        <BaseIntermediateOutputPath>$(SolutionDir)target\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+        <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
+        <MSBuildProjectExtensionsPath>$(BaseIntermediateOutputPath)</MSBuildProjectExtensionsPath>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    </PropertyGroup>
+</Project>

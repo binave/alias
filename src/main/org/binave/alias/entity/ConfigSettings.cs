@@ -29,6 +29,9 @@ internal sealed class ConfigSettings {
     /// <summary>别名对应的实际命令字符串</summary>
     public string? AliasCommand { get; set; }
 
+    /// <summary>别名定义在配置文件中的行号</summary>
+    public int LineNumber { get; set; } = 0;
+
     /// <summary>需要设置的环境变量字典（变量名 -> 变量值）</summary>
     public Dictionary<string, string> EnvironmentVars { get; } = new();
 

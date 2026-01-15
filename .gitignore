@@ -8,13 +8,31 @@
 !*.cs
 !*.csproj
 !*.ico
+!*.proj
 !*.sln
+!*.slnx
 !.alias.example
 
 # Avoid ignoring default file
 !.editorconfig
 !.gitattributes
 !.gitignore
+!Directory.Build.props
+!Directory.Build.rsp
+!Directory.Build.targets
+!Directory.Solution.props
+!Directory.Solution.targets
+!MSBuild.rsp
+!Microsoft.Common.props
+!Microsoft.Common.targets
+!Microsoft.NET.Sdk.props
+!Microsoft.NET.Sdk.targets
+!after.*.sln.targets
+!after.*.slnx.targets
+!before.*.sln.targets
+!before.*.slnx.targets
+!msbuild.exe.config
+!rd.xml
 !LICENSE
 !README.md
 !README.zh-CN.md
@@ -24,3 +42,4 @@
 .*/
 bin/
 obj/
+target/

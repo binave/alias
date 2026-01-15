@@ -32,6 +32,8 @@ using org.binave.alias.tool;
 /// - 运行重命名后的程序，它会执行对应的命令
 /// </remarks>
 internal static class Program {
+
+
     /// <summary>程序主入口点</summary>
     /// <param name="args">命令行参数</param>
     /// <returns>退出代码（0=成功，非0=失败）</returns>
@@ -47,17 +49,13 @@ internal static class Program {
 
     /// <summary>主逻辑</summary>
     private static int Run(string[] args) {
-        // 检查递归深度限制
-        string? depthError = RecursiveAliasDetector.CheckDepth();
-        if (depthError != null) {
-            Console.Error.WriteLine(depthError);
-            return 1;
-        }
-        // 递增深度计数器
-        RecursiveAliasDetector.IncrementDepth();
+
+        // 检查并递增递归深度
+        string? depthError = RecursiveAliasDetector.CheckAndIncrement();
+        bool atDepthThreshold = depthError != null;
 
         // 获取程序文件名
-        string exeName = GetExecutableName();
+        string exeName = Path.GetFileNameWithoutExtension(Environment.ProcessPath ?? AppContext.BaseDirectory);
 
         // alias.exe 特殊命令处理
         if (exeName.Equals("alias", StringComparison.OrdinalIgnoreCase)) {
@@ -111,31 +109,42 @@ internal static class Program {
         if (CacheManager.IsCacheValid(configPath)) {
             var cached = CacheManager.GetCachedEntry(cacheKey);
             if (cached != null) {
+
+                // 如果达到递归深度阈值，需要回退搜索
+                if (atDepthThreshold) {
+                    // 输出递归深度警告
+                    Console.Error.WriteLine($"\n[ERROR] alias: '{exeName}' {depthError}, fallback search triggered.");
+
+                    // 执行回退搜索
+                    var errorMessage = RecursiveAliasDetector.FallbackSearch(configPath, cacheKey, cached);
+                    if (errorMessage != null) {
+                        Console.Error.WriteLine($"[ERROR] alias: {errorMessage}");
+                        return 1;
+                    }
+
+                    Console.Error.WriteLine($"        Please re-execute the command.");
+                    return 1;
+                }
+
+                string resolvedPath = cached.Value;
+
                 // 设置环境变量
                 foreach (var (key, value) in CacheManager.DeserializeEnv(cached.Env)) {
                     NativeApi.SetEnvironmentVariable(key, Environment.ExpandEnvironmentVariables(value));
                 }
 
                 // 构建并执行命令
-                string cmdLine = CommandBuilder.Build(cached.Value, cached.Args, args);
-
-                // 检查前缀和字符集转换条件
-                string? cachedEffectivePrefix = GetEffectiveValue(cached.Prefix, cached.PrefixCondition, args);
-                string? cachedEffectiveCharsetConv = GetEffectiveValue(cached.CharsetConv, cached.CharsetConvCondition, args);
-                if (!string.IsNullOrEmpty(cachedEffectivePrefix)) {
-                    return ProcessExecutor.ExecuteWithPrefix(cmdLine, cachedEffectivePrefix, cachedEffectiveCharsetConv);
-                }
-                if (!string.IsNullOrEmpty(cachedEffectiveCharsetConv)) {
-                    return ProcessExecutor.ExecuteWithCharsetConv(cmdLine, cachedEffectiveCharsetConv);
-                }
-                return ProcessExecutor.Execute(cmdLine, cached.ExecMode);
+                string cmdLine = CommandBuilder.Build(resolvedPath, cached.Args, args);
+                return ExecuteCommand(cmdLine, cached.ExecMode,
+                    GetEffectiveValue(cached.Prefix, cached.PrefixCondition, args),
+                    GetEffectiveValue(cached.CharsetConv, cached.CharsetConvCondition, args));
             }
         }
 
         // 慢速路径：解析配置文件
         var config = ConfigParser.Parse(configPath, exeName);
         if (config == null || string.IsNullOrEmpty(config.AliasCommand)) {
-            Console.Error.WriteLine($"No alias found for '{exeName}' in {configPath}");
+            Console.Error.WriteLine($"[ERROR] No alias found for '{exeName}' in {configPath}");
             return 1;
         }
 
@@ -148,22 +157,7 @@ internal static class Program {
         string targetPath = PathResolver.ExtractExecutablePath(config.AliasCommand!);
         targetPath = Environment.ExpandEnvironmentVariables(targetPath);
 
-        string? resolved = null;
-        bool isSimpleName = !targetPath.Contains('\\') && !targetPath.Contains('/') && !targetPath.StartsWith('.');
-        bool isAbsolutePath = Path.IsPathRooted(targetPath);
-
-        if (isSimpleName) {
-            // 简单文件名，仅从 PATH 搜索
-            resolved = PathResolver.SearchInPath(targetPath);
-        } else if (isAbsolutePath) {
-            // 绝对路径（支持通配符）
-            if (targetPath.Contains('*') || targetPath.Contains('?')) {
-                resolved = PathResolver.ResolveWildcardPath(targetPath);
-            } else if (File.Exists(targetPath)) {
-                resolved = targetPath;
-            }
-        }
-
+        string? resolved = ResolvePath(targetPath);
         if (resolved == null) {
             Console.Error.WriteLine($"'{targetPath}' is not recognized as an internal or external command,");
             Console.Error.WriteLine("operable program or batch file.");
@@ -190,31 +184,49 @@ internal static class Program {
 
         // 构建并执行命令
         string commandLine = CommandBuilder.Build(resolved, resolvedArgs, args);
-
-        // 检查前缀和字符集转换条件
-        string? effectivePrefix = GetEffectiveValue(config.Prefix, config.PrefixCondition, args);
-        string? effectiveCharsetConv = GetEffectiveValue(config.CharsetConv, config.CharsetConvCondition, args);
-        if (!string.IsNullOrEmpty(effectivePrefix)) {
-            return ProcessExecutor.ExecuteWithPrefix(commandLine, effectivePrefix, effectiveCharsetConv);
-        }
-        if (!string.IsNullOrEmpty(effectiveCharsetConv)) {
-            return ProcessExecutor.ExecuteWithCharsetConv(commandLine, effectiveCharsetConv);
-        }
-        return ProcessExecutor.Execute(commandLine, config.ExecMode);
+        return ExecuteCommand(commandLine, config.ExecMode,
+            GetEffectiveValue(config.Prefix, config.PrefixCondition, args),
+            GetEffectiveValue(config.CharsetConv, config.CharsetConvCondition, args));
     }
 
-    /// <summary>获取可执行文件的名称（不含扩展名）</summary>
-    /// <returns>程序文件名</returns>
-    /// <remarks>
-    /// 支持单文件发布（Single File Publishing）场景。
-    /// 使用 Environment.ProcessPath 获取可执行文件路径，
-    /// 如果不可用则回退到 AppContext.BaseDirectory。
-    /// </remarks>
-    private static string GetExecutableName() {
-        // 支持单文件发布
-        string path = Environment.ProcessPath ?? AppContext.BaseDirectory;
-        return Path.GetFileNameWithoutExtension(path);
+    /// <summary>解析路径（支持简单文件名、绝对路径、通配符）</summary>
+    /// <param name="targetPath">目标路径</param>
+    /// <returns>解析后的完整路径，未找到返回 null</returns>
+    private static string? ResolvePath(string targetPath) {
+        if (PathResolver.IsSimpleFileName(targetPath)) {
+            // 简单文件名，仅从 PATH 搜索
+            return PathResolver.SearchInPath(targetPath);
+        }
+
+        if (Path.IsPathRooted(targetPath)) {
+            // 绝对路径（支持通配符）
+            if (targetPath.Contains('*') || targetPath.Contains('?')) {
+                return PathResolver.ResolveWildcardPath(targetPath);
+            }
+            if (File.Exists(targetPath)) {
+                return targetPath;
+            }
+        }
+
+        return null;
     }
+
+    /// <summary>执行命令（根据配置选择执行方式）</summary>
+    /// <param name="cmdLine">命令行</param>
+    /// <param name="execMode">exec 模式</param>
+    /// <param name="prefix">前缀格式（可为 null）</param>
+    /// <param name="charsetConv">字符集转换配置（可为 null）</param>
+    /// <returns>退出代码</returns>
+    private static int ExecuteCommand(string cmdLine, int execMode, string? prefix, string? charsetConv) {
+        if (!string.IsNullOrEmpty(prefix)) {
+            return ProcessExecutor.ExecuteWithPrefix(cmdLine, prefix, charsetConv);
+        }
+        if (!string.IsNullOrEmpty(charsetConv)) {
+            return ProcessExecutor.ExecuteWithCharsetConv(cmdLine, charsetConv);
+        }
+        return ProcessExecutor.Execute(cmdLine, execMode);
+    }
+
 
     /// <summary>根据条件获取有效的配置值</summary>
     /// <param name="value">配置值（如前缀格式或字符集转换配置）</param>
@@ -235,7 +247,7 @@ internal static class Program {
             }
         } catch (Exception ex) {
             // 正则表达式无效，输出错误并不应用配置
-            Console.Error.WriteLine($"Invalid regex pattern '{condition}': {ex.Message}");
+            Console.Error.WriteLine($"[ERROR] Invalid regex pattern '{condition}': {ex.Message}");
             return null;
         }
         return null;
