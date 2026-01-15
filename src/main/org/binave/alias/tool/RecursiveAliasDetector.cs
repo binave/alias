@@ -62,7 +62,6 @@ internal static class RecursiveAliasDetector {
 
     /// <summary>执行回退搜索并更新缓存</summary>
     /// <param name="configPath">配置文件路径</param>
-    /// <param name="exeName">可执行文件名</param>
     /// <param name="cacheKey">缓存键</param>
     /// <param name="cached">缓存条目</param>
     /// <returns>(成功标志, 错误消息, 解析后的路径)</returns>

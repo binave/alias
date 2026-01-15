@@ -7,6 +7,7 @@ A powerful Windows command line alias utility for managing command aliases, envi
 
 🚀 Motivation
 - On Windows, creating symbolic links (symlinks) for .exe files often fails because the required .dll dependencies cannot be found. This issue does not occur on Linux or macOS.
+- The PATH environment variable is too long, and repeatedly modifying it is cumbersome.
 
 ✨ Problems Solved
 - **Hardcoded Arguments**: Common commands are bundled with their fixed arguments, eliminating the need to type them repeatedly.
@@ -23,7 +24,7 @@ A powerful Windows command line alias utility for managing command aliases, envi
 - **Environment Variables**: Configure dedicated environment variables for each alias
 - **Wildcard Support**: Automatic wildcard path resolution (`C:\Tool*\app*.exe`)
 - **High-Performance Caching**: Use SQLite to cache resolved paths for significantly improved performance
-- **Output Prefix**: Support custom output prefixes, including dynamic timestamp formats, Supports parameter matching
+- **Output Prefix**: Support custom output prefixes, including dynamic timestamp formats, Supports parameter matching (macOS use `[command] |` [xlib](https://github.com/binave/xcmd/blob/develop/xlib) `prefix "%T %F "`)
 - **Charset Conversion**: Support command output charset conversion (e.g., UTF-8 to GBK), Supports parameter matching
 - **Exec Mode**: Support process replacement mode with immediate or delayed exit options
 - **Symlink Support**: Automatically create symlinks for aliases for direct invocation
